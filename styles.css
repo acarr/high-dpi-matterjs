@@ -1,0 +1,15 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #333;
+}
+
+#canvas-container {
+    width: 800px;
+    height: 600px;
+    background-color: black;
+} 
