@@ -1,4 +1,4 @@
-import { createHiDPIRender, d } from './hiDPI-matterjs.js';
+import { createHiDPIRender, d, resizeHiDPIRender } from './hiDPI-matterjs.js';
 
 // Matter.js module aliases
 const { Engine, World, Bodies, Render } = Matter;
@@ -6,33 +6,20 @@ const { Engine, World, Bodies, Render } = Matter;
 // Create engine
 const engine = Engine.create();
 
-// Use the hiDPI helper to create the renderer and get DPR
+// Initial renderer setup to fill the viewport
 const { render, DPR } = createHiDPIRender({
     element: document.getElementById('canvas-container'),
     engine: engine,
-    width: 800,
-    height: 600,
+    width: window.innerWidth,
+    height: window.innerHeight,
     background: 'black',
     wireframes: false
 });
 
-// All world coordinates and sizes are scaled by d()
+// Example: create a single object and a floor, both sized/scaled for the viewport
 const imageWidth = d(216);
 const imageHeight = d(270);
-const imageBody = Bodies.rectangle(d(320), d(150), imageWidth, imageHeight, {
-    restitution: 0.8,
-    friction: 0.005,
-    render: {
-        sprite: {
-            texture: 'image.png',
-            xScale: imageWidth / 216,
-            yScale: imageHeight / 270
-        }
-    }
-});
-
-// Create a second falling object (rectangle with 2x image texture)
-const image2xBody = Bodies.rectangle(d(480), d(150), imageWidth, imageHeight, {
+const imageBody = Bodies.rectangle(d(400), d(200), imageWidth, imageHeight, {
     restitution: 0.8,
     friction: 0.005,
     render: {
@@ -44,19 +31,27 @@ const image2xBody = Bodies.rectangle(d(480), d(150), imageWidth, imageHeight, {
     }
 });
 
-// Create a floor
-const floor = Bodies.rectangle(d(400), d(550), d(800), d(20), {
+const floor = Bodies.rectangle(d(window.innerWidth / 2), d(window.innerHeight - 40), d(window.innerWidth), d(40), {
     isStatic: true,
     render: {
         fillStyle: 'white'
     }
 });
 
-// Add bodies to the world
-World.add(engine.world, [imageBody, image2xBody, floor]);
+World.add(engine.world, [imageBody, floor]);
 
-// Run the engine
 Engine.run(engine);
+Render.run(render);
 
-// Run the renderer
-Render.run(render); 
+// Handle window resize: update renderer and reposition/resize bodies as needed
+window.addEventListener('resize', () => {
+    resizeHiDPIRender(render, window.innerWidth, window.innerHeight);
+    // Optionally, reposition/resize bodies here if you want them to adapt to the new viewport
+    Matter.Body.setPosition(floor, { x: d(window.innerWidth / 2), y: d(window.innerHeight - 40) });
+    Matter.Body.setVertices(floor, [
+        { x: d(0), y: d(window.innerHeight - 60) },
+        { x: d(window.innerWidth), y: d(window.innerHeight - 60) },
+        { x: d(window.innerWidth), y: d(window.innerHeight) },
+        { x: d(0), y: d(window.innerHeight) }
+    ]);
+}); 
